@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Fetching and mapping geo data</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <!-- Leaflet CSS file. -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+    integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+    crossorigin=""/>
+
+    <!-- Leaflet Javascript. Must come after CSS file. -->
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+    integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+    crossorigin=""></script>
+
+    <style>
+      #issMap {
+        height: 400px;
+      }
+    </style>
+  </head>
+<body>
+
+  <div>
+    <h1>Where is the ISS?</h1>
+    <p>
+      latitude: <span id="lat"></span> °<br/>
+      longitude: <span id="lon"></span> °<br/>
+      velocity: <span id="vel"></span> km/h
+    </p>
+  </div>
+
+  <div id="issMap"></div>
+
+  <script>
+
+    /* Define map. */
+    const map = L.map("issMap").setView([0, 0], 2)
+
+    /* Define tiles. */
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "© OpenStreetMap"
+    }).addTo(map)
+
+    /* Define icon. */
+    const issIcon = L.icon({
+      iconUrl: "iss.svg.png",
+      iconSize: [50, 32],
+    })
+
+    /* Define marker */
+    const marker = L.marker([0, 0], {icon: issIcon}).addTo(map)
+    
+    /* Define api_url. */
+    const api_url = "https://api.wheretheiss.at/v1/satellites/25544"
+    
+    /* Function to get data from api. */
+    async function getData() {
+      const response = await fetch(api_url)
+      const data = await response.json()
+      const { latitude, longitude, velocity } = data
+      
+      /* Get document elements by id and place text. */
+      const lat = document.getElementById("lat")
+      const lon = document.getElementById("lon")
+      const vel = document.getElementById("vel")
+      lat.textContent = latitude.toFixed(2)
+      lon.textContent = longitude.toFixed(2)
+      vel.textContent = velocity.toFixed(2)
+      
+      /* Set marker to coords. */
+      marker.setLatLng([latitude, longitude])
+
+      /* Set map view to coords. */
+      map.setView([latitude, longitude], 2)
+    }
+
+    setInterval(async () => {
+      await getData()
+    }, 1000)
+
+  </script>
+
+</body>
+</html>
